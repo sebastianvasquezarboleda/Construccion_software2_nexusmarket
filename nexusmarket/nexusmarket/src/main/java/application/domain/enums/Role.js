@@ -1,0 +1,9 @@
+const Role = Object.freeze({
+    BUYER: 'BUYER',
+    SELLER: 'SELLER',
+    LOGISTICS_OPERATOR: 'LOGISTICS_OPERATOR',
+    ADMINISTRATOR: 'ADMINISTRATOR',
+    SUPERVISOR: 'SUPERVISOR'
+});
+
+module.exports = Role;
