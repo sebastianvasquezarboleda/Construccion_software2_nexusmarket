@@ -1,0 +1,177 @@
+# SOFTWARE SPECIFICATION DOCUMENT (SSD)
+# NEXUSMARKET
+
+## 1. Modelos del dominio
+
+### User
+Representa a los usuarios de la plataforma.
+
+Atributos:
+- id
+- fullName
+- email
+- documentNumber
+- role
+- status
+
+Comportamientos:
+- Activar usuario.
+- Bloquear usuario.
+- Consultar si está activo.
+
+### Buyer
+Representa al comprador asociado a un usuario.
+
+Atributos:
+- id
+- userId
+- mainAddress
+- additionalAddresses
+- commercialStatus
+
+Comportamientos:
+- Agregar dirección.
+- Eliminar dirección.
+
+### Seller
+Representa al vendedor asociado a un usuario.
+
+Atributos:
+- id
+- userId
+
+### Warehouse
+Representa una bodega donde se almacena inventario.
+
+Atributos:
+- id
+- name
+- type
+
+### Product
+Representa los productos disponibles en NexusMarket.
+
+Atributos:
+- id
+- name
+- description
+- type
+- variants
+- status
+
+Comportamientos:
+- Publicar producto.
+- Suspender producto.
+- Descontinuar producto.
+- Agregar variantes.
+- Identificar si es físico o digital.
+
+### Inventory
+Representa la cantidad disponible de un producto en una bodega.
+
+Atributos:
+- id
+- productId
+- warehouseId
+- quantity
+
+Comportamientos:
+- Agregar inventario.
+- Reservar inventario.
+- Retirar inventario.
+- Devolver inventario.
+- Ajustar inventario.
+- Consultar disponibilidad.
+
+### Order
+Representa un pedido realizado por un comprador.
+
+Atributos:
+- id
+- buyerId
+- items
+- status
+- total
+
+Comportamientos:
+- Agregar producto.
+- Eliminar producto.
+- Actualizar total.
+- Enviar a pago.
+- Marcar como pagado.
+- Despachar.
+- Finalizar.
+
+## 2. Enumeraciones del dominio
+
+### Role
+- BUYER
+- SELLER
+- LOGISTICS_OPERATOR
+- ADMINISTRATOR
+- SUPERVISOR
+
+### UserStatus
+- ACTIVE
+- BLOCKED
+
+### WarehouseType
+- MARKETPLACE
+- SELLER
+
+### ProductType
+- PHYSICAL
+- DIGITAL
+
+### ProductStatus
+- PUBLISHED
+- SUSPENDED
+- DISCONTINUED
+
+### InventoryMovementType
+- ENTRY
+- RESERVATION
+- SALE_OUT
+- ADJUSTMENT
+- RETURN
+
+### OrderStatus
+- CART
+- PENDING_PAYMENT
+- PAID
+- DISPATCHED
+- FINALIZED
+
+## 3. Reglas de dominio implementadas
+
+- Los campos obligatorios deben estar presentes.
+- Los roles, estados y tipos deben ser válidos.
+- El inventario no puede ser negativo.
+- No se puede reservar más inventario del disponible.
+- Un pedido vacío no puede enviarse a pago.
+- Un pedido debe respetar su transición de estados.
+- Un pedido finalizado no puede modificarse.
+- Un producto descontinuado no puede volver a publicarse.
+
+## 4. Estructura actual
+
+src/
+└── main/
+    └── domain/
+        ├── models/
+        │   ├── User.js
+        │   ├── Buyer.js
+        │   ├── Seller.js
+        │   ├── Warehouse.js
+        │   ├── Product.js
+        │   ├── Inventory.js
+        │   └── Order.js
+        │
+        └── enums/
+            ├── Role.js
+            ├── UserStatus.js
+            ├── WarehouseType.js
+            ├── ProductType.js
+            ├── ProductStatus.js
+            ├── InventoryMovementType.js
+            └── OrderStatus.js
