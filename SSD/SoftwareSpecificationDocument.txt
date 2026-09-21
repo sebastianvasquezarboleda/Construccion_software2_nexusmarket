@@ -157,21 +157,22 @@ Comportamientos:
 
 src/
 └── main/
-    └── domain/
+    └── java/application/domain/
         ├── models/
-        │   ├── User.js
-        │   ├── Buyer.js
-        │   ├── Seller.js
-        │   ├── Warehouse.js
-        │   ├── Product.js
-        │   ├── Inventory.js
-        │   └── Order.js
+        │   ├── User.java
+        │   ├── Buyer.java
+        │   ├── Seller.java
+        │   ├── Warehouse.java
+        │   ├── Product.java
+        │   ├── Inventory.java
+        │   ├── Order.java
+        │   └── OrderItem.java
         │
         └── enums/
-            ├── Role.js
-            ├── UserStatus.js
-            ├── WarehouseType.js
-            ├── ProductType.js
-            ├── ProductStatus.js
-            ├── InventoryMovementType.js
-            └── OrderStatus.js
+            ├── Role.java
+            ├── UserStatus.java
+            ├── WarehouseType.java
+            ├── ProductType.java
+            ├── ProductStatus.java
+            ├── InventoryMovementType.java
+            └── OrderStatus.java
