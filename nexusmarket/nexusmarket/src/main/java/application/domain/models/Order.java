@@ -62,6 +62,15 @@ public class Order {
         transitionFrom(OrderStatus.DISPATCHED, OrderStatus.FINALIZED);
     }
 
+    public void cancel() {
+        if (status == OrderStatus.FINALIZED) {
+            throw new IllegalStateException("A finalized order cannot be cancelled");
+        }
+        items.clear();
+        total = BigDecimal.ZERO;
+        status = OrderStatus.CART;
+    }
+
     public Long getId() { return id; }
     public Long getBuyerId() { return buyerId; }
     public List<OrderItem> getItems() { return List.copyOf(items); }

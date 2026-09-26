@@ -155,24 +155,18 @@ Comportamientos:
 
 ## 4. Estructura actual
 
-src/
-└── main/
-    └── java/application/domain/
-        ├── models/
-        │   ├── User.java
-        │   ├── Buyer.java
-        │   ├── Seller.java
-        │   ├── Warehouse.java
-        │   ├── Product.java
-        │   ├── Inventory.java
-        │   ├── Order.java
-        │   └── OrderItem.java
-        │
-        └── enums/
-            ├── Role.java
-            ├── UserStatus.java
-            ├── WarehouseType.java
-            ├── ProductType.java
-            ├── ProductStatus.java
-            ├── InventoryMovementType.java
-            └── OrderStatus.java
+La aplicacion sigue una organizacion hexagonal por capas:
+
+- `application/domain/models/`: entidades y reglas del dominio.
+- `application/domain/enums/`: enumeraciones del dominio.
+- `application/domain/ports/out/`: puertos de salida que definen las operaciones de persistencia.
+- `application/services/`: servicios de aplicacion que coordinan casos de uso.
+- `application/adapters/out/persistence/document/`: documentos MongoDB.
+- `application/adapters/out/persistence/repository/`: interfaces Spring Data MongoDB.
+- `application/adapters/out/persistence/`: adaptadores MongoDB que implementan los puertos.
+- `application/adapters/out/memory/`: adaptadores en memoria usados por pruebas unitarias.
+- `src/test/java/`: pruebas de dominio, servicios y adaptadores.
+
+MongoDB se configura mediante `MONGODB_URI`; las pruebas de integracion usan
+`MONGODB_TEST_URI` y estan desactivadas por defecto. Las reglas principales
+permanecen en los modelos de dominio y no dependen de MongoDB.
