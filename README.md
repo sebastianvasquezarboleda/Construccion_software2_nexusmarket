@@ -140,12 +140,14 @@ Endpoint base:
 http://localhost:8080/api
 ```
 
-La colección Postman contiene 61 solicitudes organizadas por módulo. Configura
+La colección Postman contiene 62 solicitudes organizadas por módulo. Configura
 `adminEmail` y `adminPassword` en las variables de colección antes de ejecutar.
 La colección solicita automáticamente el token CSRF antes de cada request. Los
 requests deben ejecutarse en el orden indicado; generan los identificadores que
-usan los siguientes y cubren autenticación, permisos, inventario, pedidos,
-facturas, envíos, devoluciones y reportes.
+usan los siguientes y cubren autenticación, una comprobación de acceso denegado,
+inventario, pedidos, facturas, envíos, devoluciones y reportes. Las pruebas
+MockMvc verifican permisos para varios roles, propiedad de cuentas y pedidos, y
+que no se creen pedidos sin un perfil de comprador existente.
 Las rutas de listado devuelven un objeto paginado con `content`, `page`,
 `size`, `totalElements` y `totalPages`. Por defecto `page=0` y `size=50`; el
 tamaño máximo es 100. Por ejemplo, `GET /api/orders?page=1&size=25` devuelve la

@@ -387,6 +387,7 @@ public class NexusmarketApiController {
         if (current.getRole() == Role.BUYER && !buyerService.findByUserId(current.getId()).getId().equals(request.buyerId())) {
             throw new AccessDeniedException("Buyers can only create orders for themselves");
         }
+        buyerService.findById(request.buyerId());
         Order order = orderService.create(request.id(), request.buyerId());
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }

@@ -24,6 +24,9 @@ class DomainModelsTest {
 
         assertEquals("ana@example.com",
                 new User(2L, "Ana", "  ANA@example.com  ", "456", Role.BUYER, UserStatus.ACTIVE).getEmail());
+        assertEquals("DOC-123",
+                new User(3L, "Ana", "ana@example.com", "  doc-123  ", Role.BUYER, UserStatus.ACTIVE)
+                        .getDocumentNumber());
         assertFalse(user.isActive());
         user.activate();
         assertTrue(user.isActive());

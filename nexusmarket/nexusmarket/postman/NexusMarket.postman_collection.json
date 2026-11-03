@@ -26,7 +26,8 @@
     { "key": "sellerUserId", "value": "" },
     { "key": "invoiceId", "value": "" },
     { "key": "shipmentId", "value": "" },
-    { "key": "returnId", "value": "" }
+    { "key": "returnId", "value": "" },
+    { "key": "expectedStatus", "value": "" }
   ],
   "event": [
     {
@@ -57,7 +58,10 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "pm.test('Successful API response', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+          "const expectedStatus = pm.collectionVariables.get('expectedStatus');",
+          "const acceptedStatuses = expectedStatus ? [Number(expectedStatus)] : [200, 201];",
+          "pm.test('API response has expected status', () => pm.expect(pm.response.code).to.be.oneOf(acceptedStatuses));",
+          "pm.collectionVariables.unset('expectedStatus');"
         ]
       }
     }
@@ -128,6 +132,31 @@
               "options": { "raw": { "language": "json" } }
             },
             "url": "{{baseUrl}}/api/users"
+          }
+        },
+        {
+          "name": "Buyer cannot read another user's account",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('expectedStatus', '403');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                { "key": "username", "value": "ana.{{userId}}@example.com", "type": "string" },
+                { "key": "password", "value": "BuyerDemoPass123!", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users/{{sellerUserId}}"
           }
         }
       ]

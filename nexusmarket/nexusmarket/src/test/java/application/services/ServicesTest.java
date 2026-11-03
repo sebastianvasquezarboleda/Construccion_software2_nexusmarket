@@ -65,7 +65,7 @@ class ServicesTest {
                 new User(4L, "Other", "  ana@example.com  ", "DOC-789", Role.BUYER, UserStatus.ACTIVE),
                 "OtherTestPass123!"));
         assertThrows(IllegalArgumentException.class, () -> service.register(
-                new User(3L, "Other", "other@example.com", "DOC-123", Role.BUYER, UserStatus.ACTIVE),
+                new User(3L, "Other", "other@example.com", "  DOC-123  ", Role.BUYER, UserStatus.ACTIVE),
                 "OtherTestPass123!"));
     }
 

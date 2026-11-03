@@ -104,6 +104,7 @@ ReturnStatus: REQUESTED, APPROVED, REJECTED, REFUNDED.
   scan runs once per minute.
 - A buyer does not submit the product price. The order snapshots the current
   catalog price and accepts only products in PUBLISHED status.
+- An order can only be created for an existing buyer profile.
 - Order stock changes and order persistence run in a MongoDB transaction;
   failures roll back both the order and inventory changes.
 - Digital products do not reserve physical inventory and orders containing only
@@ -297,8 +298,10 @@ Import it into Postman, set baseUrl to http://localhost:8080, and provide
 adminEmail and adminPassword locally in Postman. The shared collection leaves
 both credential values blank; configure the same credentials as
 NEXUSMARKET_ADMIN_EMAIL and NEXUSMARKET_ADMIN_PASSWORD before startup. Run the
-61 requests in their listed order; they cover users, role ownership, inventory,
-orders, invoices, shipments, returns, and reports.
+62 requests in their listed order; they cover the administrator-led user,
+inventory, order, invoice, shipment, return, and report flows, plus a buyer-role
+access-denial check. MockMvc tests additionally verify role restrictions,
+account and order ownership, and that orders require an existing buyer profile.
 
 10. VERIFICATION
 
