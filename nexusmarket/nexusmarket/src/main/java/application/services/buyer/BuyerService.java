@@ -1,6 +1,7 @@
 package application.services.buyer;
 
 import application.domain.models.Buyer;
+import application.domain.models.PageResult;
 import application.domain.ports.out.BuyerRepositoryPort;
 import application.domain.ports.in.BuyerInputPort;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ public class BuyerService implements BuyerInputPort {
     }
 
     public List<Buyer> findAll() { return buyers.findAll(); }
+    public PageResult<Buyer> findPage(int page, int size) { return buyers.findPage(page, size); }
 
     private static void requireId(Long id) {
         if (id == null) {

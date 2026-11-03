@@ -2,6 +2,7 @@ package application.adapters.out.persistence.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.List;
 public class InventoryDocument {
     @Id
     private Long id;
+    @Indexed
     private Long productId;
     private Long warehouseId;
     private int quantity;

@@ -13,6 +13,7 @@ import application.domain.models.Invoice;
 import application.domain.models.Inventory;
 import application.domain.models.Order;
 import application.domain.models.Product;
+import application.domain.models.PageResult;
 import application.domain.models.ReturnRequest;
 import application.domain.models.Seller;
 import application.domain.models.Shipment;
@@ -44,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -94,7 +96,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/users")
-    public List<User> listUsers() { return userService.findAll(); }
+    public PageResult<User> listUsers(@RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "50") int size) {
+        return userService.findPage(page, size);
+    }
 
     @GetMapping("/users/{id}")
     public User getUser(@PathVariable Long id, Authentication authentication) {
@@ -133,7 +138,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/buyers")
-    public List<Buyer> listBuyers() { return buyerService.findAll(); }
+    public PageResult<Buyer> listBuyers(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "50") int size) {
+        return buyerService.findPage(page, size);
+    }
 
     @GetMapping("/buyers/{id}")
     public Buyer getBuyer(@PathVariable Long id, Authentication authentication) {
@@ -168,7 +176,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/sellers")
-    public List<Seller> listSellers() { return sellerService.findAll(); }
+    public PageResult<Seller> listSellers(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "50") int size) {
+        return sellerService.findPage(page, size);
+    }
 
     @GetMapping("/sellers/{id}")
     public Seller getSeller(@PathVariable Long id, Authentication authentication) {
@@ -190,14 +201,13 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/warehouses")
-    public List<Warehouse> listWarehouses(Authentication authentication) {
+    public PageResult<Warehouse> listWarehouses(Authentication authentication,
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "50") int size) {
         User current = currentUser(authentication);
-        if (current.getRole() != Role.SELLER) return warehouseService.findAll();
+        if (current.getRole() != Role.SELLER) return warehouseService.findPage(page, size);
         Long sellerId = sellerService.findByUserId(current.getId()).id();
-        return warehouseService.findAll().stream()
-                .filter(warehouse -> warehouse.type() == WarehouseType.MARKETPLACE
-                        || sellerId.equals(warehouse.sellerId()))
-                .toList();
+        return warehouseService.findPageForSeller(sellerId, page, size);
     }
 
     @GetMapping("/warehouses/{id}")
@@ -228,7 +238,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/products")
-    public List<Product> listProducts() { return productService.findAll(); }
+    public PageResult<Product> listProducts(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "50") int size) {
+        return productService.findPage(page, size);
+    }
 
     @GetMapping("/products/{id}")
     public Product getProduct(@PathVariable Long id) { return productService.findById(id); }
@@ -282,13 +295,16 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/inventories")
-    public List<Inventory> listInventories(Authentication authentication) {
+    public PageResult<Inventory> listInventories(Authentication authentication,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "50") int size) {
         User current = currentUser(authentication);
-        if (current.getRole() != Role.SELLER) return inventoryService.findAll();
+        if (current.getRole() != Role.SELLER) return inventoryService.findPage(page, size);
         Long sellerId = sellerService.findByUserId(current.getId()).id();
-        return inventoryService.findAll().stream()
-                .filter(inventory -> productService.findById(inventory.getProductId()).getSellerId().equals(sellerId))
+        List<Long> productIds = productService.findBySellerId(sellerId).stream()
+                .map(Product::getId)
                 .toList();
+        return inventoryService.findPageForProducts(productIds, page, size);
     }
 
     @GetMapping("/inventories/{id}")
@@ -354,7 +370,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/orders")
-    public List<Order> listOrders() { return orderService.findAll(); }
+    public PageResult<Order> listOrders(@RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "50") int size) {
+        return orderService.findPage(page, size);
+    }
 
     @GetMapping("/orders/{id}")
     public Order getOrder(@PathVariable Long id, Authentication authentication) {
@@ -393,6 +412,7 @@ public class NexusmarketApiController {
     }
 
     @PatchMapping("/orders/{id}/paid")
+    @Transactional
     public Order markAsPaid(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
@@ -416,6 +436,7 @@ public class NexusmarketApiController {
     }
 
     @PatchMapping("/orders/{id}/dispatch")
+    @Transactional
     public Order dispatchOrder(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (hasPhysicalItems(order)) {
@@ -432,6 +453,7 @@ public class NexusmarketApiController {
     }
 
     @PatchMapping("/orders/{id}/finalize")
+    @Transactional
     public Order finalizeOrder(@PathVariable Long id) {
         Order order = orderService.findById(id);
         if (hasPhysicalItems(order)) {
@@ -461,7 +483,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/invoices")
-    public List<Invoice> listInvoices() { return invoiceService.findAll(); }
+    public PageResult<Invoice> listInvoices(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "50") int size) {
+        return invoiceService.findPage(page, size);
+    }
 
     @GetMapping("/invoices/{id}")
     public Invoice getInvoice(@PathVariable String id, Authentication authentication) {
@@ -477,7 +502,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/shipments")
-    public List<Shipment> listShipments() { return shipmentService.findAll(); }
+    public PageResult<Shipment> listShipments(@RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "50") int size) {
+        return shipmentService.findPage(page, size);
+    }
 
     @GetMapping("/shipments/{id}")
     public Shipment getShipment(@PathVariable String id) { return shipmentService.findById(id); }
@@ -495,6 +523,7 @@ public class NexusmarketApiController {
     }
 
     @PatchMapping("/shipments/{id}/dispatch")
+    @Transactional
     public Shipment dispatchShipment(@PathVariable String id) {
         Shipment shipment = shipmentService.findById(id);
         dispatchOrder(shipment.getOrderId());
@@ -502,6 +531,7 @@ public class NexusmarketApiController {
     }
 
     @PatchMapping("/shipments/{id}/deliver")
+    @Transactional
     public Shipment deliverShipment(@PathVariable String id) {
         Shipment shipment = shipmentService.findById(id);
         finalizeOrder(shipment.getOrderId());
@@ -520,7 +550,10 @@ public class NexusmarketApiController {
     }
 
     @GetMapping("/returns")
-    public List<ReturnRequest> listReturns() { return returnService.findAll(); }
+    public PageResult<ReturnRequest> listReturns(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "50") int size) {
+        return returnService.findPage(page, size);
+    }
 
     @GetMapping("/returns/{id}")
     public ReturnRequest getReturn(@PathVariable String id, Authentication authentication) {

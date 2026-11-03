@@ -4,11 +4,17 @@ import application.domain.enums.Role;
 import application.domain.enums.UserStatus;
 import application.domain.models.User;
 import application.domain.ports.in.UserInputPort;
+import application.domain.ports.out.UserRepositoryPort;
+import application.adapters.out.memory.InMemoryUserRepositoryAdapter;
 import jakarta.servlet.http.Cookie;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -24,15 +30,26 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class NexusmarketApplicationTests {
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private UserInputPort users;
+
+    @TestConfiguration(proxyBeanMethods = false)
+    static class TestRepositories {
+        @Bean
+        @Primary
+        UserRepositoryPort userRepositoryPort() {
+            return new InMemoryUserRepositoryAdapter();
+        }
+    }
 
 	@Test
 	void contextLoads() {
@@ -100,6 +117,28 @@ class NexusmarketApplicationTests {
                         .header("Access-Control-Request-Method", "POST"))
                 .andExpect(result -> assertTrue(result.getResponse()
                         .getHeader("Access-Control-Allow-Origin") == null));
+    }
+
+    @Test
+    void listEndpointsReturnBoundedPagesWithMetadata() throws Exception {
+        long id = System.currentTimeMillis();
+        String email = "page-" + id + "@example.com";
+        String password = "PageTestPassword2026!";
+        users.register(new User(id, "Page Test Administrator", email, "PAGE-" + id,
+                Role.ADMINISTRATOR, UserStatus.ACTIVE), password);
+        String authorization = "Basic " + Base64.getEncoder().encodeToString(
+                (email + ":" + password).getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(get("/api/users?page=0&size=1").header("Authorization", authorization))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(1))
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber());
+
+        mockMvc.perform(get("/api/users?page=0&size=101").header("Authorization", authorization))
+                .andExpect(status().isBadRequest());
     }
 
 }

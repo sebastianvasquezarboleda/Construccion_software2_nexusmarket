@@ -5,7 +5,10 @@ import application.adapters.out.persistence.entity.OrderItemDocument;
 import application.adapters.out.persistence.repository.OrderMongoRepository;
 import application.domain.enums.OrderStatus;
 import application.domain.models.Order;
+import application.domain.models.PageResult;
 import application.domain.ports.out.OrderRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -62,6 +65,14 @@ public class MongoOrderRepositoryAdapter implements OrderRepositoryPort {
 
     @Override
     public List<Order> findAll() { return repository.findAll().stream().map(MongoOrderRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<Order> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoOrderRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     @Override
     public List<Order> findExpiredUnpaid(Instant cutoff) {

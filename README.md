@@ -21,7 +21,7 @@ Set-Location .\nexusmarket\nexusmarket
 ```
 
 La suite normal no requiere MongoDB. Para ejecutar también la prueba de
-persistencia real, con MongoDB local activo, usa la base separada
+persistencia real, con MongoDB en replica set activo, usa la base separada
 `nexusmarket_test`:
 
 ```powershell
@@ -36,12 +36,16 @@ Para ejecutar solo esa prueba:
 
 ## Ejecutar con MongoDB
 
-Por defecto, la aplicación se conecta a MongoDB local en `localhost:27017` y usa
-la base `nexusmarket`. Para usar otra instancia, configura `MONGODB_URI` antes de iniciar. La API
-requiere HTTP Basic y utiliza contraseñas BCrypt:
+La aplicación necesita MongoDB configurado como replica set (`rs0`) para que
+las transacciones mantengan sincronizados pedidos e inventario. En una
+instalación local, inicia MongoDB con `--replSet rs0` e inicialízalo una vez
+con `mongosh --eval "rs.initiate()"`. Configura
+`MONGODB_URI` para apuntar a ese replica set; la URI local predeterminada usa
+`localhost:27017`, la base `nexusmarket` y `replicaSet=rs0`. La API requiere
+HTTP Basic y utiliza contraseñas BCrypt:
 
 ```powershell
-$env:MONGODB_URI = "mongodb://localhost:27017/nexusmarket"
+$env:MONGODB_URI = "mongodb://localhost:27017/nexusmarket?replicaSet=rs0"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -81,9 +85,9 @@ cliente debe llamar a `GET /api/csrf` con autenticación y enviar el token
 devuelto en el header `X-XSRF-TOKEN`, además de devolver la cookie `XSRF-TOKEN`.
 La colección Postman obtiene y añade ambos automáticamente antes de cada request.
 
-Los pedidos cancelados quedan en estado terminal `CANCELLED`. Antes de modificar
-inventario, el servicio valida que la operación del pedido sea posible; si falla
-el guardado, intenta compensar los cambios de stock.
+Los pedidos cancelados quedan en estado terminal `CANCELLED`. La reserva,
+eliminación y cancelación de artículos ejecutan el cambio del pedido y del
+inventario en una transacción MongoDB; si una parte falla, ambas se revierten.
 Los pedidos sin pagar liberan automáticamente sus reservas después de 30 minutos
 sin actividad; la revisión se ejecuta cada minuto. Configura
 `NEXUSMARKET_CART_EXPIRATION` (duración ISO-8601, por ejemplo `PT45M`) y
@@ -96,7 +100,7 @@ los datos en `nexusmarket_demo`. Configura también las variables de
 administrador descritas arriba para poder autenticarte:
 
 ```powershell
-$env:MONGODB_DEMO_URI = "mongodb://localhost:27017/nexusmarket_demo"
+$env:MONGODB_DEMO_URI = "mongodb://localhost:27017/nexusmarket_demo?replicaSet=rs0"
 $env:NEXUSMARKET_ADMIN_EMAIL = "admin@example.com"
 $env:NEXUSMARKET_ADMIN_PASSWORD = "una-clave-segura-de-al-menos-12"
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=demo"
@@ -126,7 +130,7 @@ Ejemplo de arranque:
 
 ```powershell
 cd nexusmarket/nexusmarket
-$env:MONGODB_URI = "mongodb://localhost:27017/nexusmarket"
+$env:MONGODB_URI = "mongodb://localhost:27017/nexusmarket?replicaSet=rs0"
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -142,6 +146,10 @@ La colección solicita automáticamente el token CSRF antes de cada request. Los
 requests deben ejecutarse en el orden indicado; generan los identificadores que
 usan los siguientes y cubren autenticación, permisos, inventario, pedidos,
 facturas, envíos, devoluciones y reportes.
+Las rutas de listado devuelven un objeto paginado con `content`, `page`,
+`size`, `totalElements` y `totalPages`. Por defecto `page=0` y `size=50`; el
+tamaño máximo es 100. Por ejemplo, `GET /api/orders?page=1&size=25` devuelve la
+segunda página de pedidos.
 
 La colección está en:
 

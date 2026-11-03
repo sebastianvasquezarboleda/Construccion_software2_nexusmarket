@@ -5,6 +5,7 @@ import application.domain.enums.ProductType;
 import application.domain.enums.ShipmentStatus;
 import application.domain.models.Order;
 import application.domain.models.Shipment;
+import application.domain.models.PageResult;
 import application.domain.ports.in.OrderInputPort;
 import application.domain.ports.in.ProductInputPort;
 import application.domain.ports.in.ShipmentInputPort;
@@ -51,6 +52,7 @@ public class ShipmentService implements ShipmentInputPort {
 
     @Override
     public List<Shipment> findAll() { return shipments.findAll(); }
+    public PageResult<Shipment> findPage(int page, int size) { return shipments.findPage(page, size); }
 
     @Override
     public void pack(String id) { update(id, Shipment::pack); }

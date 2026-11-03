@@ -1,6 +1,7 @@
 package application.services.product;
 
 import application.domain.models.Product;
+import application.domain.models.PageResult;
 import application.domain.ports.in.ProductInputPort;
 import application.domain.ports.out.ProductRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,8 @@ public class ProductService implements ProductInputPort {
         return findById(productId).isDigital();
     }
     public List<Product> findAll() { return products.findAll(); }
+    public PageResult<Product> findPage(int page, int size) { return products.findPage(page, size); }
+    public List<Product> findBySellerId(Long sellerId) { return products.findBySellerId(sellerId); }
 
     private void update(Long productId, Consumer<Product> action) {
         Product product = findById(productId);

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "NexusMarket API",
-    "description": "Pruebas de los endpoints REST de NexusMarket. Configura las credenciales de administrador antes de ejecutar; el primer request genera IDs para toda la colección.",
+    "description": "Pruebas de los endpoints REST de NexusMarket. Configura las credenciales de administrador antes de ejecutar; el primer request genera IDs para toda la colección. Los endpoints de listado devuelven páginas con content, page, size, totalElements y totalPages (por defecto page=0 y size=50; máximo 100).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {

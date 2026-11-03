@@ -4,12 +4,14 @@ import application.domain.enums.OrderStatus;
 import application.domain.models.Order;
 import application.domain.models.OrderItem;
 import application.domain.models.InventoryAllocation;
+import application.domain.models.PageResult;
 import application.domain.ports.in.InventoryInputPort;
 import application.domain.ports.in.OrderInputPort;
 import application.domain.ports.in.ProductInputPort;
 import application.domain.ports.out.OrderRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,7 @@ public class OrderService implements OrderInputPort {
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
     }
 
+    @Transactional
     public void addProduct(Long orderId, Long productId, int quantity) {
         requireId(orderId);
         Order order = findById(orderId).copy();
@@ -69,6 +72,7 @@ public class OrderService implements OrderInputPort {
         }
     }
 
+    @Transactional
     public void removeProduct(Long orderId, Long productId) {
         requireId(orderId);
         if (productId == null) {
@@ -107,6 +111,7 @@ public class OrderService implements OrderInputPort {
     public void markAsPaid(Long orderId) { requireId(orderId); update(orderId, Order::markAsPaid); }
     public void dispatch(Long orderId) { requireId(orderId); update(orderId, Order::dispatch); }
     public void finalizeOrder(Long orderId) { requireId(orderId); update(orderId, Order::finalizeOrder); }
+    @Transactional
     public void cancel(Long orderId) {
         requireId(orderId);
         cancelOrder(findById(orderId));
@@ -143,6 +148,7 @@ public class OrderService implements OrderInputPort {
     }
 
     @Override
+    @Transactional
     public int expireAbandonedOrders(Instant cutoff) {
         if (cutoff == null) {
             throw new IllegalArgumentException("cutoff is required");
@@ -173,6 +179,7 @@ public class OrderService implements OrderInputPort {
     }
 
     public List<Order> findAll() { return orders.findAll(); }
+    public PageResult<Order> findPage(int page, int size) { return orders.findPage(page, size); }
 
     private boolean isPhysical(Long productId) {
         return products.findById(productId).isPhysical();

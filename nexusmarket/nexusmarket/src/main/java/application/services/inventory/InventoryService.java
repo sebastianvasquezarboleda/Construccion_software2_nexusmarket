@@ -2,6 +2,7 @@ package application.services.inventory;
 
 import application.domain.models.Inventory;
 import application.domain.models.InventoryAllocation;
+import application.domain.models.PageResult;
 import application.domain.ports.in.InventoryInputPort;
 import application.domain.ports.out.InventoryRepositoryPort;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -144,6 +145,10 @@ public class InventoryService implements InventoryInputPort {
         return findById(inventoryId).getAvailability();
     }
     public List<Inventory> findAll() { return inventories.findAll(); }
+    public PageResult<Inventory> findPage(int page, int size) { return inventories.findPage(page, size); }
+    public PageResult<Inventory> findPageForProducts(List<Long> productIds, int page, int size) {
+        return inventories.findPageForProducts(productIds, page, size);
+    }
 
     private void update(Long inventoryId, Consumer<Inventory> action) {
         Inventory current = findById(inventoryId);

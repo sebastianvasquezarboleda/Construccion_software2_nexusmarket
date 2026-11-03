@@ -3,7 +3,10 @@ package application.adapters.out.persistence;
 import application.adapters.out.persistence.entity.ProductDocument;
 import application.adapters.out.persistence.repository.ProductMongoRepository;
 import application.domain.models.Product;
+import application.domain.models.PageResult;
 import application.domain.ports.out.ProductRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -33,7 +36,20 @@ public class MongoProductRepositoryAdapter implements ProductRepositoryPort {
     public Optional<Product> findById(Long id) { return repository.findById(id).map(MongoProductRepositoryAdapter::toDomain); }
 
     @Override
+    public List<Product> findBySellerId(Long sellerId) {
+        return repository.findBySellerId(sellerId).stream().map(MongoProductRepositoryAdapter::toDomain).toList();
+    }
+
+    @Override
     public List<Product> findAll() { return repository.findAll().stream().map(MongoProductRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<Product> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoProductRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     private static Product toDomain(ProductDocument document) {
         return new Product(document.getId(), document.getSellerId() == null ? 0L : document.getSellerId(),

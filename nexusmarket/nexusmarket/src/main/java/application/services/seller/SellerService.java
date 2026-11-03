@@ -1,6 +1,7 @@
 package application.services.seller;
 
 import application.domain.models.Seller;
+import application.domain.models.PageResult;
 import application.domain.ports.in.SellerInputPort;
 import application.domain.ports.out.SellerRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class SellerService implements SellerInputPort {
     }
 
     public List<Seller> findAll() { return sellers.findAll(); }
+    public PageResult<Seller> findPage(int page, int size) { return sellers.findPage(page, size); }
 
     private static void requireId(Long id) {
         if (id == null) {

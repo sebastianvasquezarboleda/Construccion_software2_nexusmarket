@@ -4,6 +4,7 @@ import application.domain.enums.ProductStatus;
 import application.domain.enums.ProductType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 public class ProductDocument {
     @Id
     private Long id;
+    @Indexed
     private Long sellerId;
     private String name;
     private String description;

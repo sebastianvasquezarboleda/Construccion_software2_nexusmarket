@@ -1,6 +1,7 @@
 package application.domain.ports.in;
 
 import application.domain.models.Order;
+import application.domain.models.PageResult;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,4 +22,5 @@ public interface OrderInputPort {
                               int previouslyRequestedQuantity, int quantity);
     void releaseReturnQuantity(Long orderId, Long productId, int quantity, String returnRequestId);
     List<Order> findAll();
+    PageResult<Order> findPage(int page, int size);
 }

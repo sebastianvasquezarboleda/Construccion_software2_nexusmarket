@@ -104,8 +104,8 @@ ReturnStatus: REQUESTED, APPROVED, REJECTED, REFUNDED.
   scan runs once per minute.
 - A buyer does not submit the product price. The order snapshots the current
   catalog price and accepts only products in PUBLISHED status.
-- Order stock changes validate the order operation before changing inventory;
-  failed persistence operations attempt to compensate stock changes.
+- Order stock changes and order persistence run in a MongoDB transaction;
+  failures roll back both the order and inventory changes.
 - Digital products do not reserve physical inventory and orders containing only
   digital products are finalized when marked paid; digital file delivery is
   not part of this implementation.
@@ -127,6 +127,7 @@ ReturnStatus: REQUESTED, APPROVED, REJECTED, REFUNDED.
 5. APPLICATION AND HEXAGONAL ARCHITECTURE
 
 - application/domain/models/: domain entities and value models.
+- PageResult carries bounded list results and page metadata.
 - application/domain/enums/: domain enumerations.
 - application/domain/ports/in/: input ports used by the REST adapter.
 - application/domain/ports/out/: persistence ports.
@@ -210,6 +211,11 @@ Returns:
 Reports:
 - GET /reports/summary.
 
+Collection list routes return a paginated object with `content`, `page`, `size`,
+`totalElements`, and `totalPages`. The default page is 0 with size 50; accepted
+page sizes are 1 through 100. For example, GET /orders?page=1&size=25 requests
+the second page. MongoDB-backed pages are ordered by identifier.
+
 Domain and malformed-request validation errors are returned as HTTP 400
 responses. Unexpected server errors are logged and returned with a generic
 message. Successful creation requests return HTTP 201; other successful
@@ -218,7 +224,9 @@ requests return HTTP 200.
 7. MONGODB AND AUTHENTICATION
 
 The main application uses MONGODB_URI. By default it connects to
-mongodb://localhost:27017/nexusmarket. MongoDB persistence classes are mapped
+mongodb://localhost:27017/nexusmarket?replicaSet=rs0. MongoDB must run as a
+replica set to support transactions across orders, inventory, invoices,
+shipments, and returns. MongoDB persistence classes are mapped
 to collections for buyers, inventories, orders, products, sellers, users, warehouses, invoices, shipments, and returns.
 Password hashes are stored on user documents. Inventory movements
 and order inventory allocations are embedded in their parent documents.
@@ -236,7 +244,8 @@ must contain at least 12 characters. New users can be registered by an
 administrator through POST /api/users; the request includes a password.
 
 For isolated demonstrations, activate the demo profile. It uses
-MONGODB_DEMO_URI or defaults to mongodb://localhost:27017/nexusmarket_demo.
+MONGODB_DEMO_URI or defaults to
+mongodb://localhost:27017/nexusmarket_demo?replicaSet=rs0.
 This profile does not modify or delete data in the default nexusmarket database:
 
 .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=demo"
@@ -249,6 +258,10 @@ nexusmarket_test database. Run it from nexusmarket/nexusmarket with:
 Cart expiration defaults to 30 minutes and a 60-second scan interval. Configure
 NEXUSMARKET_CART_EXPIRATION with an ISO-8601 duration and
 NEXUSMARKET_CART_EXPIRATION_SCAN_MS with the scan interval in milliseconds.
+
+Order reservations, removal, cancellation, and return processing use MongoDB
+transactions so concurrent failures cannot leave the order and stock in
+different states.
 
 For deployments, terminate TLS at a trusted reverse proxy, restrict direct
 access to the Spring Boot port, and overwrite forwarded headers at the proxy.

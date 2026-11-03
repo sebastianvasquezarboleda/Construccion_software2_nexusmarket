@@ -5,12 +5,14 @@ import application.domain.enums.ReturnStatus;
 import application.domain.models.Order;
 import application.domain.models.InventoryAllocation;
 import application.domain.models.OrderItem;
+import application.domain.models.PageResult;
 import application.domain.models.ReturnRequest;
 import application.domain.ports.in.InventoryInputPort;
 import application.domain.ports.in.OrderInputPort;
 import application.domain.ports.in.ReturnInputPort;
 import application.domain.ports.out.ReturnRequestRepositoryPort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +32,7 @@ public class ReturnService implements ReturnInputPort {
     }
 
     @Override
+    @Transactional
     public ReturnRequest request(Long orderId, Long productId, int quantity, String reason) {
         if (orderId == null || productId == null) throw new IllegalArgumentException("orderId and productId are required");
         if (quantity <= 0) throw new IllegalArgumentException("quantity must be positive");
@@ -80,8 +83,10 @@ public class ReturnService implements ReturnInputPort {
 
     @Override
     public List<ReturnRequest> findAll() { return returns.findAll(); }
+    public PageResult<ReturnRequest> findPage(int page, int size) { return returns.findPage(page, size); }
 
     @Override
+    @Transactional
     public void approve(String id) {
         ReturnRequest request = findById(id);
         if (request.getStatus() == ReturnStatus.REQUESTED) {
@@ -95,6 +100,7 @@ public class ReturnService implements ReturnInputPort {
     }
 
     @Override
+    @Transactional
     public void reject(String id) {
         ReturnRequest request = findById(id);
         if (request.getStatus() == ReturnStatus.REQUESTED) {
@@ -109,6 +115,7 @@ public class ReturnService implements ReturnInputPort {
     }
 
     @Override
+    @Transactional
     public void recordRefund(String id) {
         ReturnRequest request = findById(id);
         if (request.getStatus() != ReturnStatus.APPROVED && request.getStatus() != ReturnStatus.REFUNDED) {

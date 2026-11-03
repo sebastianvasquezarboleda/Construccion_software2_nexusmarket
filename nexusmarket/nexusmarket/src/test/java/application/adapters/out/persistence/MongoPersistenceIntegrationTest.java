@@ -35,6 +35,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.MongoTransactionManager;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.bson.Document;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -43,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -81,6 +86,30 @@ class MongoPersistenceIntegrationTest {
 
     @Autowired
     private ReturnRequestRepositoryPort returns;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private MongoTransactionManager transactionManager;
+
+    @Test
+    void mongoTransactionsRollBackWrites() {
+        String collectionName = "transaction_checks";
+        if (!mongoTemplate.collectionExists(collectionName)) {
+            mongoTemplate.createCollection(collectionName);
+        }
+        String id = UUID.randomUUID().toString();
+
+        assertThrows(IllegalStateException.class, () -> new TransactionTemplate(transactionManager)
+                .executeWithoutResult(status -> {
+                    mongoTemplate.getCollection(collectionName).insertOne(new Document("_id", id));
+                    throw new IllegalStateException("trigger transaction rollback");
+                }));
+
+        assertFalse(mongoTemplate.getCollection(collectionName)
+                .find(new Document("_id", id)).iterator().hasNext());
+    }
 
     @Test
     void allPortsPersistAndRestoreTheirDomainObjects() throws Exception {

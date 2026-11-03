@@ -1,6 +1,7 @@
 package application.domain.ports.in;
 
 import application.domain.models.User;
+import application.domain.models.PageResult;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface UserInputPort {
     void block(Long userId);
     boolean isActive(Long userId);
     List<User> findAll();
+    PageResult<User> findPage(int page, int size);
 }

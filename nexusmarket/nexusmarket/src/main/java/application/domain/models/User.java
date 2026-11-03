@@ -20,7 +20,7 @@ public class User {
         }
         this.id = id;
         this.fullName = required(fullName, "fullName");
-        this.email = required(email, "email").toLowerCase(Locale.ROOT);
+        this.email = required(email, "email").strip().toLowerCase(Locale.ROOT);
         this.documentNumber = required(documentNumber, "documentNumber").toUpperCase(Locale.ROOT);
         if (role == null) {
             throw new IllegalArgumentException("role is required");

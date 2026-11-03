@@ -3,13 +3,16 @@ package application.adapters.out.persistence.entity;
 import application.domain.enums.WarehouseType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 @Document("warehouses")
 public class WarehouseDocument {
     @Id
     private Long id;
     private String name;
+    @Indexed
     private WarehouseType type;
+    @Indexed
     private Long sellerId;
 
     public WarehouseDocument() { }

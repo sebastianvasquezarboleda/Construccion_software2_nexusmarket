@@ -4,7 +4,10 @@ import application.adapters.out.persistence.entity.UserDocument;
 import application.adapters.out.persistence.repository.UserMongoRepository;
 import application.domain.models.User;
 import application.domain.models.UserCredential;
+import application.domain.models.PageResult;
 import application.domain.ports.out.UserRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -54,6 +57,14 @@ public class MongoUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findAll() { return repository.findAll().stream().map(MongoUserRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<User> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoUserRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     private static void updateDocument(UserDocument document, User user) {
         document.setId(user.getId());

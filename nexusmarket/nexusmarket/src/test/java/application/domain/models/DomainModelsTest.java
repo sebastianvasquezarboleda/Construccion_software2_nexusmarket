@@ -22,6 +22,8 @@ class DomainModelsTest {
     void userCanBeActivatedAndBlocked() {
         User user = new User(1L, "Ana", "ana@example.com", "123", Role.BUYER, UserStatus.BLOCKED);
 
+        assertEquals("ana@example.com",
+                new User(2L, "Ana", "  ANA@example.com  ", "456", Role.BUYER, UserStatus.ACTIVE).getEmail());
         assertFalse(user.isActive());
         user.activate();
         assertTrue(user.isActive());

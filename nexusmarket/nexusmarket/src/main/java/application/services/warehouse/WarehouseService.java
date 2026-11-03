@@ -1,6 +1,7 @@
 package application.services.warehouse;
 
 import application.domain.models.Warehouse;
+import application.domain.models.PageResult;
 import application.domain.ports.in.WarehouseInputPort;
 import application.domain.ports.out.WarehouseRepositoryPort;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,10 @@ public class WarehouseService implements WarehouseInputPort {
     }
 
     public List<Warehouse> findAll() { return warehouses.findAll(); }
+    public PageResult<Warehouse> findPage(int page, int size) { return warehouses.findPage(page, size); }
+    public PageResult<Warehouse> findPageForSeller(Long sellerId, int page, int size) {
+        return warehouses.findPageForSeller(sellerId, page, size);
+    }
 
     private static void requireId(Long id) {
         if (id == null) {

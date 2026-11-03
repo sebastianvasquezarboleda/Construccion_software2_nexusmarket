@@ -6,10 +6,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepositoryPort {
+public interface OrderRepositoryPort extends PagedRepositoryPort<Order> {
     void save(Order order);
     Optional<Order> findById(Long id);
-    List<Order> findAll();
     List<Order> findExpiredUnpaid(Instant cutoff);
     int reserveReturnQuantity(Long orderId, Long productId, int purchasedQuantity,
                               int previouslyRequestedQuantity, int quantity);

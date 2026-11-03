@@ -2,6 +2,7 @@ package application.services.billing;
 
 import application.domain.enums.OrderStatus;
 import application.domain.models.Invoice;
+import application.domain.models.PageResult;
 import application.domain.models.InvoiceLine;
 import application.domain.models.Order;
 import application.domain.ports.in.InvoiceInputPort;
@@ -51,4 +52,5 @@ public class InvoiceService implements InvoiceInputPort {
 
     @Override
     public List<Invoice> findAll() { return invoices.findAll(); }
+    public PageResult<Invoice> findPage(int page, int size) { return invoices.findPage(page, size); }
 }

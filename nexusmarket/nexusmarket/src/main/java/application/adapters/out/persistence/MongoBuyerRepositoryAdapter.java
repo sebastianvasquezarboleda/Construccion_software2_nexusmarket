@@ -3,7 +3,10 @@ package application.adapters.out.persistence;
 import application.adapters.out.persistence.entity.BuyerDocument;
 import application.adapters.out.persistence.repository.BuyerMongoRepository;
 import application.domain.models.Buyer;
+import application.domain.models.PageResult;
 import application.domain.ports.out.BuyerRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -36,6 +39,14 @@ public class MongoBuyerRepositoryAdapter implements BuyerRepositoryPort {
 
     @Override
     public List<Buyer> findAll() { return repository.findAll().stream().map(MongoBuyerRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<Buyer> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoBuyerRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     private static Buyer toDomain(BuyerDocument document) {
         return new Buyer(document.getId(), document.getUserId(), document.getMainAddress(),

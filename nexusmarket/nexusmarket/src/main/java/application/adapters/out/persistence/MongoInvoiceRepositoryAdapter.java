@@ -5,7 +5,10 @@ import application.adapters.out.persistence.entity.InvoiceLineDocument;
 import application.adapters.out.persistence.repository.InvoiceMongoRepository;
 import application.domain.models.Invoice;
 import application.domain.models.InvoiceLine;
+import application.domain.models.PageResult;
 import application.domain.ports.out.InvoiceRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,6 +40,14 @@ public class MongoInvoiceRepositoryAdapter implements InvoiceRepositoryPort {
 
     @Override
     public List<Invoice> findAll() { return repository.findAll().stream().map(MongoInvoiceRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<Invoice> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoInvoiceRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     private static InvoiceDocument toDocument(Invoice invoice) {
         InvoiceDocument document = new InvoiceDocument();

@@ -5,7 +5,10 @@ import application.adapters.out.persistence.entity.InventoryMovementDocument;
 import application.adapters.out.persistence.repository.InventoryMongoRepository;
 import application.domain.models.Inventory;
 import application.domain.models.InventoryMovement;
+import application.domain.models.PageResult;
 import application.domain.ports.out.InventoryRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -60,6 +63,26 @@ public class MongoInventoryRepositoryAdapter implements InventoryRepositoryPort 
 
     @Override
     public List<Inventory> findAll() { return repository.findAll().stream().map(MongoInventoryRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<Inventory> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoInventoryRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
+
+    @Override
+    public PageResult<Inventory> findPageForProducts(List<Long> productIds, int page, int size) {
+        PageResult.validate(page, size);
+        if (productIds == null || productIds.isEmpty()) {
+            return new PageResult<>(List.of(), page, size, 0);
+        }
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        var result = repository.findByProductIdIn(productIds, pageable);
+        return new PageResult<>(result.getContent().stream().map(MongoInventoryRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     private static Inventory toDomain(InventoryDocument document) {
         return new Inventory(document.getId(), document.getProductId(), document.getWarehouseId(),

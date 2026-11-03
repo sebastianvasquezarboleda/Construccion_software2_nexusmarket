@@ -1,6 +1,7 @@
 package application.services.user;
 
 import application.domain.models.User;
+import application.domain.models.PageResult;
 import application.domain.ports.in.UserInputPort;
 import application.domain.ports.out.UserRepositoryPort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -82,6 +83,7 @@ public class UserService implements UserInputPort {
         return findById(userId).isActive();
     }
     public List<User> findAll() { return users.findAll(); }
+    public PageResult<User> findPage(int page, int size) { return users.findPage(page, size); }
 
     private static void requireUser(User user) {
         if (user == null) {

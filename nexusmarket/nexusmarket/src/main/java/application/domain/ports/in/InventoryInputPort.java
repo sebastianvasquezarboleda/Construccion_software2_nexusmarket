@@ -2,6 +2,7 @@ package application.domain.ports.in;
 
 import application.domain.models.Inventory;
 import application.domain.models.InventoryAllocation;
+import application.domain.models.PageResult;
 
 import java.util.List;
 
@@ -24,4 +25,6 @@ public interface InventoryInputPort {
     void adjust(Long inventoryId, int quantity);
     int getAvailability(Long inventoryId);
     List<Inventory> findAll();
+    PageResult<Inventory> findPage(int page, int size);
+    PageResult<Inventory> findPageForProducts(List<Long> productIds, int page, int size);
 }

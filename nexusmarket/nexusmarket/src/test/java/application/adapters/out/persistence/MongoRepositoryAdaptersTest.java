@@ -10,6 +10,9 @@ import application.domain.enums.OrderStatus;
 import application.domain.enums.Role;
 import application.domain.enums.UserStatus;
 import application.domain.models.Order;
+import application.domain.models.PageResult;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import application.domain.models.User;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -98,5 +101,29 @@ class MongoRepositoryAdaptersTest {
         assertEquals(OrderStatus.CANCELLED, restored.getStatus());
         assertEquals(0, restored.getItems().size());
         assertEquals(BigDecimal.ZERO, restored.getTotal());
+    }
+
+    @Test
+    void orderAdapterPagesMongoResultsInIdentifierOrder() {
+        OrderMongoRepository repository = mock(OrderMongoRepository.class);
+        MongoTemplate mongoTemplate = mock(MongoTemplate.class);
+        OrderDocument document = new OrderDocument();
+        document.setId(908L);
+        document.setBuyerId(909L);
+        document.setStatus(OrderStatus.CART);
+        when(repository.findAll(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(java.util.List.of(document), Pageable.ofSize(2), 3));
+        MongoOrderRepositoryAdapter adapter = new MongoOrderRepositoryAdapter(repository, mongoTemplate);
+
+        PageResult<Order> page = adapter.findPage(1, 2);
+
+        assertEquals(1, page.page());
+        assertEquals(2, page.size());
+        assertEquals(3, page.totalElements());
+        assertEquals(2, page.totalPages());
+        assertEquals(908L, page.content().get(0).getId());
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(repository).findAll(pageable.capture());
+        assertTrue(pageable.getValue().getSort().getOrderFor("id") != null);
     }
 }

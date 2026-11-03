@@ -3,8 +3,11 @@ package application.adapters.out.persistence;
 import application.adapters.out.persistence.entity.ReturnRequestDocument;
 import application.adapters.out.persistence.repository.ReturnRequestMongoRepository;
 import application.domain.enums.ReturnStatus;
+import application.domain.models.PageResult;
 import application.domain.models.ReturnRequest;
 import application.domain.ports.out.ReturnRequestRepositoryPort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -40,6 +43,14 @@ public class MongoReturnRequestRepositoryAdapter implements ReturnRequestReposit
 
     @Override
     public List<ReturnRequest> findAll() { return repository.findAll().stream().map(MongoReturnRequestRepositoryAdapter::toDomain).toList(); }
+
+    @Override
+    public PageResult<ReturnRequest> findPage(int page, int size) {
+        PageResult.validate(page, size);
+        var result = repository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
+        return new PageResult<>(result.getContent().stream().map(MongoReturnRequestRepositoryAdapter::toDomain).toList(),
+                page, size, result.getTotalElements());
+    }
 
     @Override
     public boolean transitionStatus(String id, ReturnStatus expected, ReturnStatus next) {
