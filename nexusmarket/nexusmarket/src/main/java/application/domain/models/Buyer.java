@@ -12,12 +12,17 @@ public class Buyer {
 
     public Buyer(Long id, Long userId, String mainAddress,
                  List<String> additionalAddresses, String commercialStatus) {
+        if (id == null) {
+            throw new IllegalArgumentException("id is required");
+        }
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
         this.id = id;
         this.userId = userId;
         this.mainAddress = required(mainAddress, "mainAddress");
-        this.additionalAddresses = new ArrayList<>(additionalAddresses == null
-                ? List.of() : additionalAddresses);
-        this.commercialStatus = commercialStatus;
+        this.additionalAddresses = normalizeAddresses(additionalAddresses);
+        this.commercialStatus = required(commercialStatus, "commercialStatus");
     }
 
     public void addAddress(String address) {
@@ -28,7 +33,8 @@ public class Buyer {
     }
 
     public void removeAddress(String address) {
-        if (!additionalAddresses.remove(address)) {
+        String value = required(address, "address");
+        if (!additionalAddresses.remove(value)) {
             throw new IllegalArgumentException("Address does not exist");
         }
     }
@@ -39,10 +45,30 @@ public class Buyer {
     public List<String> getAdditionalAddresses() { return List.copyOf(additionalAddresses); }
     public String getCommercialStatus() { return commercialStatus; }
 
+    private static List<String> normalizeAddresses(List<String> addresses) {
+        List<String> normalized = new ArrayList<>();
+        if (addresses == null) {
+            return normalized;
+        }
+
+        for (String address : addresses) {
+            String value = required(address, "address");
+            if (!normalized.contains(value)) {
+                normalized.add(value);
+            }
+        }
+        return normalized;
+    }
+
     private static String required(String value, String field) {
-        if (value == null || value.isBlank()) {
+        if (value == null) {
             throw new IllegalArgumentException(field + " is required");
         }
-        return value;
+
+        String normalized = value.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalArgumentException(field + " is required");
+        }
+        return normalized;
     }
 }

@@ -1,8 +1,9 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.UserDocument;
+import application.adapters.out.persistence.entity.UserDocument;
 import application.adapters.out.persistence.repository.UserMongoRepository;
 import application.domain.models.User;
+import application.domain.models.UserCredential;
 import application.domain.ports.out.UserRepositoryPort;
 import org.springframework.stereotype.Repository;
 
@@ -17,13 +18,16 @@ public class MongoUserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public void save(User user) {
+        UserDocument document = repository.findById(user.getId()).orElseGet(UserDocument::new);
+        updateDocument(document, user);
+        repository.save(document);
+    }
+
+    @Override
+    public void save(User user, String passwordHash) {
         UserDocument document = new UserDocument();
-        document.setId(user.getId());
-        document.setFullName(user.getFullName());
-        document.setEmail(user.getEmail());
-        document.setDocumentNumber(user.getDocumentNumber());
-        document.setRole(user.getRole());
-        document.setStatus(user.getStatus());
+        updateDocument(document, user);
+        document.setPasswordHash(passwordHash);
         repository.save(document);
     }
 
@@ -31,7 +35,34 @@ public class MongoUserRepositoryAdapter implements UserRepositoryPort {
     public Optional<User> findById(Long id) { return repository.findById(id).map(MongoUserRepositoryAdapter::toDomain); }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return repository.findByEmailIgnoreCase(email).map(MongoUserRepositoryAdapter::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByDocumentNumber(String documentNumber) {
+        return repository.findByDocumentNumberIgnoreCase(documentNumber).map(MongoUserRepositoryAdapter::toDomain);
+    }
+
+    @Override
+    public Optional<UserCredential> findCredentialByEmail(String email) {
+        return repository.findByEmailIgnoreCase(email)
+                .filter(document -> document.getPasswordHash() != null)
+                .map(document -> new UserCredential(document.getId(), document.getEmail(),
+                        document.getPasswordHash(), document.getRole(), document.getStatus()));
+    }
+
+    @Override
     public List<User> findAll() { return repository.findAll().stream().map(MongoUserRepositoryAdapter::toDomain).toList(); }
+
+    private static void updateDocument(UserDocument document, User user) {
+        document.setId(user.getId());
+        document.setFullName(user.getFullName());
+        document.setEmail(user.getEmail());
+        document.setDocumentNumber(user.getDocumentNumber());
+        document.setRole(user.getRole());
+        document.setStatus(user.getStatus());
+    }
 
     private static User toDomain(UserDocument document) {
         return new User(document.getId(), document.getFullName(), document.getEmail(),

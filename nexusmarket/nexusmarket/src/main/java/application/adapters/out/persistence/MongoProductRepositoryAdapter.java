@@ -1,6 +1,6 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.ProductDocument;
+import application.adapters.out.persistence.entity.ProductDocument;
 import application.adapters.out.persistence.repository.ProductMongoRepository;
 import application.domain.models.Product;
 import application.domain.ports.out.ProductRepositoryPort;
@@ -19,8 +19,10 @@ public class MongoProductRepositoryAdapter implements ProductRepositoryPort {
     public void save(Product product) {
         ProductDocument document = new ProductDocument();
         document.setId(product.getId());
+        document.setSellerId(product.getSellerId());
         document.setName(product.getName());
         document.setDescription(product.getDescription());
+        document.setPrice(product.getPrice());
         document.setType(product.getType());
         document.setVariants(product.getVariants());
         document.setStatus(product.getStatus());
@@ -34,7 +36,8 @@ public class MongoProductRepositoryAdapter implements ProductRepositoryPort {
     public List<Product> findAll() { return repository.findAll().stream().map(MongoProductRepositoryAdapter::toDomain).toList(); }
 
     private static Product toDomain(ProductDocument document) {
-        return new Product(document.getId(), document.getName(), document.getDescription(), document.getType(),
-                document.getVariants(), document.getStatus());
+        return new Product(document.getId(), document.getSellerId() == null ? 0L : document.getSellerId(),
+                document.getName(), document.getDescription(), document.getType(),
+                document.getVariants(), document.getStatus(), document.getPrice());
     }
 }

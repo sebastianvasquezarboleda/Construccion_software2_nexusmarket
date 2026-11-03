@@ -3,7 +3,7 @@ package application.domain.models;
 import application.domain.enums.Role;
 import application.domain.enums.UserStatus;
 
-import java.util.Objects;
+import java.util.Locale;
 
 public class User {
     private final Long id;
@@ -15,12 +15,21 @@ public class User {
 
     public User(Long id, String fullName, String email, String documentNumber,
                 Role role, UserStatus status) {
+        if (id == null) {
+            throw new IllegalArgumentException("id is required");
+        }
         this.id = id;
         this.fullName = required(fullName, "fullName");
-        this.email = required(email, "email");
-        this.documentNumber = required(documentNumber, "documentNumber");
-        this.role = Objects.requireNonNull(role, "role is required");
-        this.status = Objects.requireNonNull(status, "status is required");
+        this.email = required(email, "email").toLowerCase(Locale.ROOT);
+        this.documentNumber = required(documentNumber, "documentNumber").toUpperCase(Locale.ROOT);
+        if (role == null) {
+            throw new IllegalArgumentException("role is required");
+        }
+        if (status == null) {
+            throw new IllegalArgumentException("status is required");
+        }
+        this.role = role;
+        this.status = status;
     }
 
     public void activate() {

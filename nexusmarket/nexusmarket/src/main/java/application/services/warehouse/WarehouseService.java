@@ -1,13 +1,14 @@
 package application.services.warehouse;
 
 import application.domain.models.Warehouse;
+import application.domain.ports.in.WarehouseInputPort;
 import application.domain.ports.out.WarehouseRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class WarehouseService {
+public class WarehouseService implements WarehouseInputPort {
     private final WarehouseRepositoryPort warehouses;
 
     public WarehouseService(WarehouseRepositoryPort warehouses) {

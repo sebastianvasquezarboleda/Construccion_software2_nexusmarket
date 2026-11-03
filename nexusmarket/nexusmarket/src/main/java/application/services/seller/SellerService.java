@@ -1,13 +1,14 @@
 package application.services.seller;
 
 import application.domain.models.Seller;
+import application.domain.ports.in.SellerInputPort;
 import application.domain.ports.out.SellerRepositoryPort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class SellerService {
+public class SellerService implements SellerInputPort {
     private final SellerRepositoryPort sellers;
 
     public SellerService(SellerRepositoryPort sellers) {
@@ -15,9 +16,15 @@ public class SellerService {
     }
 
     public Seller register(Seller seller) {
+        if (seller == null) {
+            throw new IllegalArgumentException("seller is required");
+        }
         requireId(seller.id());
         if (sellers.findById(seller.id()).isPresent()) {
             throw new IllegalArgumentException("Seller already exists");
+        }
+        if (sellers.findByUserId(seller.userId()).isPresent()) {
+            throw new IllegalArgumentException("A seller profile already exists for this user");
         }
         sellers.save(seller);
         return seller;

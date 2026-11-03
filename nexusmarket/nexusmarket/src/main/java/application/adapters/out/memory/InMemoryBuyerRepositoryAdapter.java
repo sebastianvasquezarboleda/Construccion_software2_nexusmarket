@@ -18,5 +18,10 @@ public class InMemoryBuyerRepositoryAdapter implements BuyerRepositoryPort {
     public Optional<Buyer> findById(Long id) { return Optional.ofNullable(buyers.get(id)); }
 
     @Override
+    public Optional<Buyer> findByUserId(Long userId) {
+        return buyers.values().stream().filter(buyer -> buyer.getUserId().equals(userId)).findFirst();
+    }
+
+    @Override
     public List<Buyer> findAll() { return List.copyOf(buyers.values()); }
 }

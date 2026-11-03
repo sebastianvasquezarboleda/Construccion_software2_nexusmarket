@@ -5,5 +5,6 @@ public enum InventoryMovementType {
     RESERVATION,
     SALE_OUT,
     ADJUSTMENT,
-    RETURN
+    RETURN,
+    DAMAGED
 }

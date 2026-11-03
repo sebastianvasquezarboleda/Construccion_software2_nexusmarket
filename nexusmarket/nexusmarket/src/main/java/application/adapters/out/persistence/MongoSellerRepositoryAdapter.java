@@ -1,6 +1,6 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.SellerDocument;
+import application.adapters.out.persistence.entity.SellerDocument;
 import application.adapters.out.persistence.repository.SellerMongoRepository;
 import application.domain.models.Seller;
 import application.domain.ports.out.SellerRepositoryPort;

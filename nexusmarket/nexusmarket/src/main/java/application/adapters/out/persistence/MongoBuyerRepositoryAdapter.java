@@ -1,6 +1,6 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.BuyerDocument;
+import application.adapters.out.persistence.entity.BuyerDocument;
 import application.adapters.out.persistence.repository.BuyerMongoRepository;
 import application.domain.models.Buyer;
 import application.domain.ports.out.BuyerRepositoryPort;
@@ -28,6 +28,11 @@ public class MongoBuyerRepositoryAdapter implements BuyerRepositoryPort {
 
     @Override
     public Optional<Buyer> findById(Long id) { return repository.findById(id).map(MongoBuyerRepositoryAdapter::toDomain); }
+
+    @Override
+    public Optional<Buyer> findByUserId(Long userId) {
+        return repository.findByUserId(userId).map(MongoBuyerRepositoryAdapter::toDomain);
+    }
 
     @Override
     public List<Buyer> findAll() { return repository.findAll().stream().map(MongoBuyerRepositoryAdapter::toDomain).toList(); }

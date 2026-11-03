@@ -3,6 +3,17 @@
 
 # Log file
 *.log
+**/target/
+**/build/
+**/test_output.txt
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Editor settings
+.vscode/
 
 # BlueJ files
 *.ctxt

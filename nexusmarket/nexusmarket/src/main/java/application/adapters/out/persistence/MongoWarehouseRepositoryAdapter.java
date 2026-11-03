@@ -1,6 +1,6 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.WarehouseDocument;
+import application.adapters.out.persistence.entity.WarehouseDocument;
 import application.adapters.out.persistence.repository.WarehouseMongoRepository;
 import application.domain.models.Warehouse;
 import application.domain.ports.out.WarehouseRepositoryPort;
@@ -21,6 +21,7 @@ public class MongoWarehouseRepositoryAdapter implements WarehouseRepositoryPort 
         document.setId(warehouse.id());
         document.setName(warehouse.name());
         document.setType(warehouse.type());
+        document.setSellerId(warehouse.sellerId());
         repository.save(document);
     }
 
@@ -33,6 +34,7 @@ public class MongoWarehouseRepositoryAdapter implements WarehouseRepositoryPort 
     public List<Warehouse> findAll() { return repository.findAll().stream().map(MongoWarehouseRepositoryAdapter::toDomain).toList(); }
 
     private static Warehouse toDomain(WarehouseDocument document) {
-        return new Warehouse(document.getId(), document.getName(), document.getType());
+        return new Warehouse(document.getId(), document.getName(), document.getType(),
+                document.getSellerId());
     }
 }

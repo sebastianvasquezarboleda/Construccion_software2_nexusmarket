@@ -3,26 +3,52 @@ package application.domain.models;
 import application.domain.enums.ProductStatus;
 import application.domain.enums.ProductType;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Product {
     private final Long id;
+    private final Long sellerId;
     private final String name;
     private final String description;
+    private BigDecimal price;
     private final ProductType type;
     private final List<String> variants;
     private ProductStatus status;
 
     public Product(Long id, String name, String description, ProductType type,
                    List<String> variants, ProductStatus status) {
+        this(id, 0L, name, description, type, variants, status, BigDecimal.ZERO);
+    }
+
+    public Product(Long id, Long sellerId, String name, String description, ProductType type,
+                   List<String> variants, ProductStatus status) {
+        this(id, sellerId, name, description, type, variants, status, BigDecimal.ZERO);
+    }
+
+    public Product(Long id, Long sellerId, String name, String description, ProductType type,
+                   List<String> variants, ProductStatus status, BigDecimal price) {
+        if (id == null) {
+            throw new IllegalArgumentException("id is required");
+        }
+        if (sellerId == null) {
+            throw new IllegalArgumentException("sellerId is required");
+        }
         this.id = id;
+        this.sellerId = sellerId;
         this.name = required(name, "name");
         this.description = required(description, "description");
-        this.type = Objects.requireNonNull(type, "type is required");
+        this.price = validPrice(price);
+        if (type == null) {
+            throw new IllegalArgumentException("type is required");
+        }
+        if (status == null) {
+            throw new IllegalArgumentException("status is required");
+        }
+        this.type = type;
         this.variants = new ArrayList<>(variants == null ? List.of() : variants);
-        this.status = Objects.requireNonNull(status, "status is required");
+        this.status = status;
     }
 
     public void publish() {
@@ -49,12 +75,19 @@ public class Product {
         }
     }
 
+    public void updatePrice(BigDecimal price) {
+        ensureModifiable();
+        this.price = validPrice(price);
+    }
+
     public boolean isPhysical() { return type == ProductType.PHYSICAL; }
     public boolean isDigital() { return type == ProductType.DIGITAL; }
 
     public Long getId() { return id; }
+    public Long getSellerId() { return sellerId; }
     public String getName() { return name; }
     public String getDescription() { return description; }
+    public BigDecimal getPrice() { return price; }
     public ProductType getType() { return type; }
     public List<String> getVariants() { return List.copyOf(variants); }
     public ProductStatus getStatus() { return status; }
@@ -70,5 +103,12 @@ public class Product {
             throw new IllegalArgumentException(field + " is required");
         }
         return value;
+    }
+
+    private static BigDecimal validPrice(BigDecimal price) {
+        if (price == null || price.signum() < 0) {
+            throw new IllegalArgumentException("price must be zero or greater");
+        }
+        return price;
     }
 }

@@ -1,8 +1,10 @@
 package application.adapters.out.persistence;
 
-import application.adapters.out.persistence.document.OrderDocument;
-import application.adapters.out.persistence.document.UserDocument;
+import application.adapters.out.persistence.entity.OrderDocument;
+import application.adapters.out.persistence.entity.BuyerDocument;
+import application.adapters.out.persistence.entity.UserDocument;
 import application.adapters.out.persistence.repository.OrderMongoRepository;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import application.adapters.out.persistence.repository.UserMongoRepository;
 import application.domain.enums.OrderStatus;
 import application.domain.enums.Role;
@@ -16,12 +18,22 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MongoRepositoryAdaptersTest {
+    @Test
+    void buyerDocumentHandlesMissingAdditionalAddresses() {
+        BuyerDocument document = new BuyerDocument();
+
+        document.setAdditionalAddresses(null);
+
+        assertTrue(document.getAdditionalAddresses().isEmpty());
+    }
+
     @Test
     void userAdapterMapsDomainUserToMongoDocument() {
         UserMongoRepository repository = mock(UserMongoRepository.class);
@@ -41,8 +53,10 @@ class MongoRepositoryAdaptersTest {
     @Test
     void orderAdapterEmbedsItemsAndRestoresOrderState() {
         OrderMongoRepository repository = mock(OrderMongoRepository.class);
-        when(repository.save(any(OrderDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        MongoOrderRepositoryAdapter adapter = new MongoOrderRepositoryAdapter(repository);
+        MongoTemplate mongoTemplate = mock(MongoTemplate.class);
+        when(repository.existsById(902L)).thenReturn(false);
+        when(repository.insert(any(OrderDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        MongoOrderRepositoryAdapter adapter = new MongoOrderRepositoryAdapter(repository, mongoTemplate);
         Order order = new Order(902L, 903L, OrderStatus.CART);
         order.addProduct(904L, 2, new BigDecimal("12.50"));
         order.sendToPayment();
@@ -51,7 +65,7 @@ class MongoRepositoryAdaptersTest {
         adapter.save(order);
 
         ArgumentCaptor<OrderDocument> captor = ArgumentCaptor.forClass(OrderDocument.class);
-        verify(repository).save(captor.capture());
+        verify(repository).insert(captor.capture());
         OrderDocument saved = captor.getValue();
         assertEquals(1, saved.getItems().size());
         assertEquals(OrderStatus.PAID, saved.getStatus());
@@ -61,5 +75,28 @@ class MongoRepositoryAdaptersTest {
         assertEquals(OrderStatus.PAID, restored.getStatus());
         assertEquals(1, restored.getItems().size());
         assertEquals(0, new BigDecimal("25.00").compareTo(restored.getTotal()));
+    }
+
+    @Test
+    void orderAdapterRestoresCancelledOrderWithoutItems() {
+        OrderMongoRepository repository = mock(OrderMongoRepository.class);
+        MongoTemplate mongoTemplate = mock(MongoTemplate.class);
+        when(repository.existsById(905L)).thenReturn(false);
+        when(repository.insert(any(OrderDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        MongoOrderRepositoryAdapter adapter = new MongoOrderRepositoryAdapter(repository, mongoTemplate);
+        Order order = new Order(905L, 906L, OrderStatus.CART);
+        order.addProduct(907L, 1, new BigDecimal("12.50"));
+        order.cancel();
+
+        adapter.save(order);
+
+        ArgumentCaptor<OrderDocument> captor = ArgumentCaptor.forClass(OrderDocument.class);
+        verify(repository).insert(captor.capture());
+        when(repository.findById(905L)).thenReturn(Optional.of(captor.getValue()));
+
+        Order restored = adapter.findById(905L).orElseThrow();
+        assertEquals(OrderStatus.CANCELLED, restored.getStatus());
+        assertEquals(0, restored.getItems().size());
+        assertEquals(BigDecimal.ZERO, restored.getTotal());
     }
 }

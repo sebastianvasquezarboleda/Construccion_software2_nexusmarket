@@ -1,6 +1,6 @@
 package application.adapters.out.persistence.repository;
 
-import application.adapters.out.persistence.document.SellerDocument;
+import application.adapters.out.persistence.entity.SellerDocument;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;

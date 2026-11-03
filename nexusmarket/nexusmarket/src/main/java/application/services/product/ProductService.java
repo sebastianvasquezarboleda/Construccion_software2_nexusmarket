@@ -1,14 +1,16 @@
 package application.services.product;
 
 import application.domain.models.Product;
+import application.domain.ports.in.ProductInputPort;
 import application.domain.ports.out.ProductRepositoryPort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.function.Consumer;
 
 @Service
-public class ProductService {
+public class ProductService implements ProductInputPort {
     private final ProductRepositoryPort products;
 
     public ProductService(ProductRepositoryPort products) {
@@ -41,6 +43,13 @@ public class ProductService {
         }
         Product product = findById(productId);
         product.addVariant(variant);
+        products.save(product);
+    }
+
+    public void updatePrice(Long productId, BigDecimal price) {
+        requireId(productId);
+        Product product = findById(productId);
+        product.updatePrice(price);
         products.save(product);
     }
 
